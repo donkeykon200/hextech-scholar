@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code2, Sparkles, BookOpen, Cpu } from "lucide-react";
+import { Code2, Sparkles, BookOpen, Cpu, Trophy } from "lucide-react";
 import Header from "@/components/Header";
 import LessonPath from "@/components/LessonPath";
 import CodeEditor from "@/components/CodeEditor";
 import AIAssistant from "@/components/AIAssistant";
+import AchievementsGrid from "@/components/AchievementsGrid";
 
 const Index = () => {
   const sampleExercise = {
@@ -48,7 +49,7 @@ with entry {
 
         {/* Main Content */}
         <Tabs defaultValue="lessons" className="w-full">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 mb-8 bg-card border border-border">
+          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5 mb-8 bg-card border border-border">
             <TabsTrigger value="lessons" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BookOpen className="w-4 h-4 mr-2" />
               Lessons
@@ -64,6 +65,10 @@ with entry {
             <TabsTrigger value="compiler" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Cpu className="w-4 h-4 mr-2" />
               Compiler
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Trophy className="w-4 h-4 mr-2" />
+              Achievements
             </TabsTrigger>
           </TabsList>
 
@@ -106,6 +111,12 @@ with entry {
               <CodeEditor 
                 initialCode={sampleCode}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="mt-0">
+            <div className="max-w-7xl mx-auto">
+              <AchievementsGrid />
             </div>
           </TabsContent>
         </Tabs>
