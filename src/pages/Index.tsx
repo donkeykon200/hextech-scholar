@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code2, Sparkles, BookOpen, Cpu, Trophy } from "lucide-react";
+import { Code2, Sparkles, BookOpen, Cpu, Trophy, Map } from "lucide-react";
 import Header from "@/components/Header";
 import LessonPath from "@/components/LessonPath";
 import CodeEditor from "@/components/CodeEditor";
 import AIAssistant from "@/components/AIAssistant";
 import AchievementsGrid from "@/components/AchievementsGrid";
+import LearningRoadmap from "@/components/LearningRoadmap";
 
 const Index = () => {
   const sampleExercise = {
@@ -48,8 +49,12 @@ with entry {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="lessons" className="w-full">
-          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5 mb-8 bg-card border border-border">
+        <Tabs defaultValue="roadmap" className="w-full">
+          <TabsList className="grid w-full max-w-4xl mx-auto grid-cols-6 mb-8 bg-card border border-border">
+            <TabsTrigger value="roadmap" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Map className="w-4 h-4 mr-2" />
+              Roadmap
+            </TabsTrigger>
             <TabsTrigger value="lessons" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BookOpen className="w-4 h-4 mr-2" />
               Lessons
@@ -60,7 +65,7 @@ with entry {
             </TabsTrigger>
             <TabsTrigger value="ai" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Sparkles className="w-4 h-4 mr-2" />
-              AI Help
+              AI Tutor
             </TabsTrigger>
             <TabsTrigger value="compiler" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Cpu className="w-4 h-4 mr-2" />
@@ -71,6 +76,12 @@ with entry {
               Achievements
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="roadmap" className="mt-0">
+            <div className="max-w-6xl mx-auto">
+              <LearningRoadmap />
+            </div>
+          </TabsContent>
 
           <TabsContent value="lessons" className="mt-0">
             <div className="max-w-4xl mx-auto">
@@ -95,8 +106,8 @@ with entry {
           <TabsContent value="ai" className="mt-0">
             <div className="max-w-3xl mx-auto">
               <div className="mb-6 text-center">
-                <h3 className="text-2xl font-bold text-foreground mb-2">AI Learning Assistant</h3>
-                <p className="text-muted-foreground">Get instant help from your AI tutor powered by Bi-LLM</p>
+                <h3 className="text-2xl font-bold text-foreground mb-2">AI Jaclang Tutor</h3>
+                <p className="text-muted-foreground">Get instant help from your personal AI tutor</p>
               </div>
               <AIAssistant />
             </div>
