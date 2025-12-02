@@ -109,4 +109,140 @@ All colors MUST be HSL.
   .animate-progress-pulse {
     animation: progress-pulse 1.5s ease-in-out infinite;
   }
+
+  /* Arcane Glitch Effect */
+  @keyframes glitch {
+    0%, 100% { 
+      transform: translate(0);
+      filter: hue-rotate(0deg);
+    }
+    10% { 
+      transform: translate(-2px, 1px);
+      filter: hue-rotate(10deg);
+    }
+    20% { 
+      transform: translate(2px, -1px);
+      filter: hue-rotate(-10deg);
+    }
+    30% { 
+      transform: translate(-1px, 2px);
+    }
+    40% { 
+      transform: translate(1px, -2px);
+    }
+    50% { 
+      transform: translate(-2px, -1px);
+      filter: hue-rotate(5deg);
+    }
+    60% { 
+      transform: translate(2px, 1px);
+    }
+    70% { 
+      transform: translate(0);
+    }
+  }
+
+  @keyframes phase {
+    0%, 100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
+    25% { 
+      opacity: 0.9;
+      transform: scale(1.01);
+    }
+    50% { 
+      opacity: 0.95;
+      transform: scale(0.99);
+    }
+    75% { 
+      opacity: 0.85;
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes spray-flicker {
+    0%, 100% { opacity: 0.6; }
+    25% { opacity: 0.8; }
+    50% { opacity: 0.5; }
+    75% { opacity: 0.9; }
+  }
+
+  @keyframes neon-pulse {
+    0%, 100% { 
+      text-shadow: 0 0 5px hsl(var(--glow-cyan)), 0 0 10px hsl(var(--glow-cyan)), 0 0 20px hsl(var(--glow-cyan));
+    }
+    50% { 
+      text-shadow: 0 0 10px hsl(var(--glow-cyan)), 0 0 20px hsl(var(--glow-cyan)), 0 0 40px hsl(var(--glow-cyan));
+    }
+  }
+
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .animate-glitch {
+    animation: glitch 0.3s ease-in-out;
+  }
+
+  .animate-phase {
+    animation: phase 4s ease-in-out infinite;
+  }
+
+  .animate-spray-flicker {
+    animation: spray-flicker 2s ease-in-out infinite;
+  }
+
+  .animate-neon-pulse {
+    animation: neon-pulse 2s ease-in-out infinite;
+  }
+
+  /* Graffiti scratchy border effect */
+  .graffiti-border {
+    position: relative;
+  }
+
+  .graffiti-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(
+      45deg,
+      hsl(var(--glow-cyan)) 0%,
+      transparent 25%,
+      hsl(var(--glow-purple)) 50%,
+      transparent 75%,
+      hsl(var(--glow-cyan)) 100%
+    );
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0.5;
+    animation: spray-flicker 2s ease-in-out infinite;
+  }
+
+  /* Spray paint texture overlay */
+  .spray-texture {
+    background-image: 
+      radial-gradient(circle at 20% 80%, hsl(var(--glow-cyan) / 0.15) 0%, transparent 30%),
+      radial-gradient(circle at 80% 20%, hsl(var(--glow-purple) / 0.15) 0%, transparent 30%),
+      radial-gradient(circle at 40% 40%, hsl(var(--glow-cyan) / 0.1) 0%, transparent 20%),
+      radial-gradient(circle at 60% 60%, hsl(var(--glow-purple) / 0.1) 0%, transparent 20%);
+  }
+
+  /* Scanline effect */
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--background) / 0.1) 2px,
+      hsl(var(--background) / 0.1) 4px
+    );
+    pointer-events: none;
+    opacity: 0.3;
+  }
 }
