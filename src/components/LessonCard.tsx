@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Lock, CheckCircle2, Play } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useGlitchSound } from "@/hooks/useGlitchSound";
 
 interface LessonCardProps {
   title: string;
@@ -17,12 +18,18 @@ const LessonCard = ({ title, description, progress, status, xp, onClick }: Lesso
   const isCompleted = status === "completed";
   const [isHovered, setIsHovered] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
+  const { playGlitchSound } = useGlitchSound();
 
   const handleMouseEnter = () => {
     setIsHovered(true);
     // Trigger glitch on hover
     setIsGlitching(true);
     setTimeout(() => setIsGlitching(false), 300);
+    
+    // Play glitch sound for non-locked cards
+    if (!isLocked) {
+      playGlitchSound();
+    }
   };
 
   const handleMouseLeave = () => {
