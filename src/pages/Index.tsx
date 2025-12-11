@@ -49,52 +49,52 @@ with entry {
     switch (activeSection) {
       case "lessons":
         return (
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Your Learning Path</h2>
-              <p className="text-muted-foreground">Complete lessons to unlock new concepts and earn XP</p>
+          <div className="max-w-4xl mx-auto animate-fade-in-up">
+            <div className="mb-8">
+              <h2 className="text-2xl font-medium text-foreground mb-2">Your Learning Path</h2>
+              <p className="text-sm text-muted-foreground">Complete lessons to unlock new concepts and earn XP</p>
             </div>
             <LessonPath />
           </div>
         );
       case "playground":
         return (
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Code Playground</h2>
-              <p className="text-muted-foreground">Experiment with Jaclang in a safe sandbox environment</p>
+          <div className="max-w-7xl mx-auto animate-fade-in-up">
+            <div className="mb-6">
+              <h2 className="text-2xl font-medium text-foreground mb-2">Code Playground</h2>
+              <p className="text-sm text-muted-foreground">Experiment with Jaclang in a safe sandbox environment</p>
             </div>
             <CodeEditor initialCode={sampleCode} exercise={sampleExercise} />
           </div>
         );
       case "ai-tutor":
         return (
-          <div className="max-w-3xl mx-auto">
-            <div className="mb-6 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">AI Jaclang Tutor</h2>
-              <p className="text-muted-foreground">Get instant help from your personal AI tutor</p>
+          <div className="max-w-3xl mx-auto animate-fade-in-up">
+            <div className="mb-6">
+              <h2 className="text-2xl font-medium text-foreground mb-2">AI Tutor</h2>
+              <p className="text-sm text-muted-foreground">Get instant help from your personal AI tutor</p>
             </div>
             <AIAssistant />
           </div>
         );
       case "roadmap":
         return (
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Course Roadmap</h2>
-              <p className="text-muted-foreground">Your journey to Jaclang mastery</p>
+          <div className="max-w-6xl mx-auto animate-fade-in-up">
+            <div className="mb-8">
+              <h2 className="text-2xl font-medium text-foreground mb-2">Course Roadmap</h2>
+              <p className="text-sm text-muted-foreground">Your journey to Jaclang mastery</p>
             </div>
             <LearningRoadmap />
           </div>
         );
       case "projects":
         return (
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Mini Projects</h2>
-              <p className="text-muted-foreground">Build real-world projects to solidify your knowledge</p>
+          <div className="max-w-6xl mx-auto animate-fade-in-up">
+            <div className="mb-8">
+              <h2 className="text-2xl font-medium text-foreground mb-2">Mini Projects</h2>
+              <p className="text-sm text-muted-foreground">Build real-world projects to solidify your knowledge</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 { title: "Todo App", desc: "Build a task manager with walkers", difficulty: "Beginner", progress: 0 },
                 { title: "Graph Visualizer", desc: "Create interactive node graphs", difficulty: "Intermediate", progress: 0 },
@@ -105,7 +105,6 @@ with entry {
                   title={project.title}
                   description={project.desc}
                   icon={FolderKanban}
-                  color={i === 0 ? "success" : i === 1 ? "warning" : "accent"}
                   progress={project.progress}
                   action="Start Project"
                 />
@@ -115,12 +114,12 @@ with entry {
         );
       case "bug-games":
         return (
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Bug Hunt Games</h2>
-              <p className="text-muted-foreground">Find and fix bugs in fun, gamified challenges</p>
+          <div className="max-w-4xl mx-auto animate-fade-in-up">
+            <div className="mb-8">
+              <h2 className="text-2xl font-medium text-foreground mb-2">Bug Hunt Games</h2>
+              <p className="text-sm text-muted-foreground">Find and fix bugs in fun, gamified challenges</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { title: "Syntax Safari", desc: "Hunt syntax errors in the wild", level: 1 },
                 { title: "Logic Labyrinth", desc: "Navigate through logical bugs", level: 2 },
@@ -131,7 +130,6 @@ with entry {
                   title={game.title}
                   description={game.desc}
                   icon={Bug}
-                  color="destructive"
                   action={`Level ${game.level}`}
                 />
               ))}
@@ -140,15 +138,15 @@ with entry {
         );
       case "mistakes":
         return (
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Mistake Workouts</h2>
-              <p className="text-muted-foreground">Review and practice areas where you've struggled</p>
+          <div className="max-w-4xl mx-auto animate-fade-in-up">
+            <div className="mb-8">
+              <h2 className="text-2xl font-medium text-foreground mb-2">Mistake Review</h2>
+              <p className="text-sm text-muted-foreground">Review and practice areas where you've struggled</p>
             </div>
-            <div className="glass-panel rounded-2xl p-6 text-center">
-              <RotateCcw className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No mistakes yet!</h3>
-              <p className="text-muted-foreground">Complete some lessons to see your areas for improvement.</p>
+            <div className="rounded-xl bg-card border border-border/20 p-8 text-center">
+              <RotateCcw className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-sm font-medium text-foreground mb-2">No mistakes yet</h3>
+              <p className="text-xs text-muted-foreground">Complete some lessons to see your areas for improvement.</p>
             </div>
           </div>
         );
@@ -163,12 +161,12 @@ with entry {
       <TopNavbar />
       <Sidebar3D activeItem={activeSection === "dashboard" ? "" : activeSection} onItemClick={setActiveSection} />
       
-      <main className="pl-64 pt-16 min-h-screen transition-all duration-300">
-        <div className="p-8">
+      <main className="pl-56 pt-14 min-h-screen transition-all duration-550">
+        <div className="p-6">
           {activeSection !== "dashboard" && (
             <button
               onClick={() => setActiveSection("dashboard")}
-              className="mb-6 text-sm text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
+              className="mb-6 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors duration-400"
             >
               ← Back to Dashboard
             </button>
@@ -183,7 +181,7 @@ with entry {
 // Dashboard Content Component
 const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => void }) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Hero Section */}
       <HeroSection />
 
@@ -193,74 +191,69 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
           title="Continue Lesson"
           description="Pick up where you left off"
           icon={BookOpen}
-          color="primary"
           progress={65}
           action="Resume"
           onClick={() => onNavigate("lessons")}
         />
         <DashboardCard
-          title="Sandbox Mode"
+          title="Sandbox"
           description="Experiment freely with code"
           icon={Code2}
-          color="info"
-          action="Open Sandbox"
+          action="Open"
           onClick={() => onNavigate("playground")}
         />
         <DashboardCard
           title="Mini Project"
           description="Apply your knowledge"
           icon={FolderKanban}
-          color="warning"
-          action="Browse Projects"
+          action="Browse"
           onClick={() => onNavigate("projects")}
         />
         <DashboardCard
           title="Bug Hunt"
           description="Debug and earn rewards"
           icon={Bug}
-          color="destructive"
-          action="Play Now"
+          action="Play"
           onClick={() => onNavigate("bug-games")}
         />
         <DashboardCard
-          title="Review Mistakes"
+          title="Review"
           description="Strengthen weak areas"
           icon={RotateCcw}
-          color="accent"
-          action="Start Review"
+          action="Start"
           onClick={() => onNavigate("mistakes")}
         />
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Progress & Stats */}
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left Column - Progress & Achievements */}
+        <div className="space-y-4">
           <ProgressSphere 
             percentage={42} 
             label="Overall Progress" 
-            sublabel="42% Complete" 
+            sublabel="Keep going!" 
           />
           <AchievementTotem />
         </div>
 
         {/* Center Column - Daily Challenge & Recent Activity */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           <DailyChallenge />
           
           {/* Recent Lessons */}
-          <div className="glass-panel rounded-2xl p-6">
+          <div className="rounded-xl bg-card border border-border/20 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Recent Lessons</h3>
+              <h3 className="text-sm font-medium text-foreground">Recent Lessons</h3>
               <button 
                 onClick={() => onNavigate("lessons")}
-                className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
+                className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors duration-400"
               >
                 View All <ArrowRight className="w-3 h-3" />
               </button>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               {[
                 { title: "Introduction to Walkers", progress: 100, time: "15 min" },
                 { title: "Node Data Types", progress: 75, time: "20 min" },
@@ -268,34 +261,34 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
               ].map((lesson, i) => (
                 <div 
                   key={i}
-                  className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-all duration-400 cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                    <Play className="w-4 h-4 text-primary" />
+                  <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center group-hover:bg-secondary/80 transition-colors duration-400">
+                    <Play className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors duration-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{lesson.title}</p>
-                    <p className="text-xs text-muted-foreground">{lesson.time}</p>
+                    <p className="text-sm text-foreground truncate">{lesson.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{lesson.time}</p>
                   </div>
-                  <div className="w-20">
-                    <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div className="w-16">
+                    <div className="h-1 rounded-full bg-secondary overflow-hidden">
                       <div 
-                        className="h-full rounded-full bg-primary transition-all"
+                        className="h-full rounded-full bg-primary/60 transition-all duration-700"
                         style={{ width: `${lesson.progress}%` }}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground text-right mt-1">{lesson.progress}%</p>
+                    <p className="text-[10px] text-muted-foreground text-right mt-1">{lesson.progress}%</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Quick Tips */}
-          <div className="glass-panel-subtle rounded-2xl p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Tip</h3>
-            <p className="text-foreground">
-              💡 <span className="text-primary font-medium">Walkers</span> are the primary way to traverse graphs in Jaclang. 
+          {/* Quick Tip */}
+          <div className="rounded-xl bg-secondary/30 border border-border/20 p-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Quick Tip</span>
+            <p className="text-sm text-foreground mt-1.5 leading-relaxed">
+              <span className="text-primary">Walkers</span> are the primary way to traverse graphs in Jaclang. 
               They can carry data and execute abilities when visiting nodes.
             </p>
           </div>

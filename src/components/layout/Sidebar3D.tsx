@@ -18,19 +18,18 @@ interface SidebarItem {
   id: string;
   label: string;
   icon: React.ElementType;
-  color: string;
 }
 
 const sidebarItems: SidebarItem[] = [
-  { id: "lessons", label: "Lessons", icon: BookOpen, color: "text-primary" },
-  { id: "playground", label: "Code Playground", icon: Code2, color: "text-info" },
-  { id: "ai-tutor", label: "AI Tutor", icon: Sparkles, color: "text-accent" },
-  { id: "roadmap", label: "Course Roadmap", icon: Map, color: "text-success" },
-  { id: "projects", label: "Mini Projects", icon: FolderKanban, color: "text-warning" },
-  { id: "cheatsheets", label: "Cheatsheets", icon: FileText, color: "text-primary" },
-  { id: "summaries", label: "Summaries", icon: ListChecks, color: "text-info" },
-  { id: "bug-games", label: "Fun Bug Games", icon: Bug, color: "text-destructive" },
-  { id: "mistakes", label: "Mistake Workouts", icon: RotateCcw, color: "text-accent" },
+  { id: "lessons", label: "Lessons", icon: BookOpen },
+  { id: "playground", label: "Playground", icon: Code2 },
+  { id: "ai-tutor", label: "AI Tutor", icon: Sparkles },
+  { id: "roadmap", label: "Roadmap", icon: Map },
+  { id: "projects", label: "Projects", icon: FolderKanban },
+  { id: "cheatsheets", label: "Cheatsheets", icon: FileText },
+  { id: "summaries", label: "Summaries", icon: ListChecks },
+  { id: "bug-games", label: "Bug Games", icon: Bug },
+  { id: "mistakes", label: "Mistakes", icon: RotateCcw },
 ];
 
 interface Sidebar3DProps {
@@ -44,14 +43,14 @@ const Sidebar3D = ({ activeItem, onItemClick }: Sidebar3DProps) => {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-16 bottom-0 z-40 glass-panel border-r border-border/30 transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
+        "fixed left-0 top-14 bottom-0 z-40 glass-panel border-r border-border/20 transition-all duration-550",
+        isCollapsed ? "w-14" : "w-56"
       )}
     >
       {/* Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 w-6 h-6 rounded-full glass-panel border border-border/50 flex items-center justify-center hover:bg-secondary transition-colors"
+        className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-card border border-border/30 flex items-center justify-center hover:bg-secondary transition-all duration-400"
       >
         {isCollapsed ? (
           <ChevronRight className="w-3 h-3 text-muted-foreground" />
@@ -61,7 +60,7 @@ const Sidebar3D = ({ activeItem, onItemClick }: Sidebar3DProps) => {
       </button>
 
       {/* Navigation Items */}
-      <nav className="p-3 space-y-1 mt-4">
+      <nav className="p-2 space-y-0.5 mt-4">
         {sidebarItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeItem === item.id;
@@ -71,55 +70,58 @@ const Sidebar3D = ({ activeItem, onItemClick }: Sidebar3DProps) => {
               key={item.id}
               onClick={() => onItemClick(item.id)}
               className={cn(
-                "w-full sidebar-item-3d rounded-xl p-3 flex items-center gap-3 group",
-                "transition-all duration-300 ease-out",
+                "w-full sidebar-item rounded-lg p-2.5 flex items-center gap-3 relative",
+                "transition-all duration-400",
                 isActive 
-                  ? "glass-panel border border-primary/30 glow-soft" 
-                  : "hover:bg-secondary/50 border border-transparent"
+                  ? "bg-secondary/80 text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
               )}
               style={{ 
-                animationDelay: `${index * 50}ms`,
+                animationDelay: `${index * 30}ms`,
               }}
             >
+              {/* Active Line Indicator */}
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full bg-primary" />
+              )}
+
               <div 
                 className={cn(
-                  "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+                  "w-7 h-7 rounded-md flex items-center justify-center transition-all duration-400",
                   isActive 
-                    ? "bg-primary/20 shadow-glow-sm" 
-                    : "bg-secondary/50 group-hover:bg-secondary"
+                    ? "bg-primary/10" 
+                    : "bg-transparent"
                 )}
               >
-                <Icon className={cn("w-5 h-5 transition-colors", isActive ? item.color : "text-muted-foreground group-hover:text-foreground")} />
+                <Icon className={cn(
+                  "w-4 h-4 transition-colors duration-400",
+                  isActive ? "text-primary" : ""
+                )} />
               </div>
               
               {!isCollapsed && (
                 <span className={cn(
-                  "text-sm font-medium transition-colors",
-                  isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  "text-sm transition-all duration-400",
+                  isActive ? "font-medium" : ""
                 )}>
                   {item.label}
                 </span>
-              )}
-
-              {/* Active Indicator */}
-              {isActive && (
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-l-full bg-primary" />
               )}
             </button>
           );
         })}
       </nav>
 
-      {/* Bottom Section */}
+      {/* Bottom Section - Streak */}
       {!isCollapsed && (
-        <div className="absolute bottom-4 left-3 right-3">
-          <div className="glass-panel-subtle rounded-xl p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-              <span className="text-xs text-muted-foreground">Daily Streak</span>
+        <div className="absolute bottom-4 left-2 right-2">
+          <div className="rounded-lg bg-secondary/50 border border-border/20 p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-subtle" />
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Streak</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-2xl font-bold text-warning">7</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-semibold text-foreground">7</span>
               <span className="text-xs text-muted-foreground">days</span>
             </div>
           </div>
