@@ -1,51 +1,57 @@
-import { Sparkles, Clock, ArrowRight } from "lucide-react";
+import { Clock, Gift, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const DailyChallenge = () => {
   return (
-    <div className="rounded-xl bg-card border border-border/20 p-5 relative overflow-hidden">
-      {/* Subtle glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/[0.02] blur-3xl pointer-events-none" />
-
+    <div className="hologram rounded-2xl p-6 relative overflow-hidden">
+      {/* Glow Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 pointer-events-none" />
+      
       <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-            </div>
-            <h3 className="text-sm font-medium text-foreground">Daily Challenge</h3>
+            <Gift className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium text-foreground">Daily Challenge</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="w-3 h-3" />
-            <span>12h left</span>
+            <Clock className="w-3.5 h-3.5" />
+            <span>12:34:56</span>
           </div>
         </div>
 
         {/* Challenge Content */}
         <div className="mb-4">
-          <h4 className="text-base font-medium text-foreground mb-1">Walker Navigation</h4>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Create a walker that visits all nodes in a graph and collects data from each.
+          <h4 className="text-lg font-semibold text-foreground mb-1">
+            Walker Navigation
+          </h4>
+          <p className="text-sm text-muted-foreground">
+            Create a walker that traverses a binary tree and collects all node values.
           </p>
         </div>
 
         {/* Rewards */}
-        <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="text-primary font-medium">+50</span> XP
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="text-primary font-medium">+1</span> Streak
-          </span>
+        <div className="flex items-center gap-4 mb-4 p-3 rounded-xl bg-secondary/30">
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">XP Reward</p>
+            <p className="text-lg font-bold text-warning">+150</p>
+          </div>
+          <div className="w-px h-8 bg-border" />
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Bonus</p>
+            <p className="text-lg font-bold text-primary">2x</p>
+          </div>
+          <div className="w-px h-8 bg-border" />
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Difficulty</p>
+            <p className="text-sm font-medium text-success">Medium</p>
+          </div>
         </div>
 
-        {/* CTA */}
-        <Button 
-          className="w-full h-9 text-xs bg-secondary/80 hover:bg-secondary text-foreground border border-border/30 transition-all duration-400"
-        >
+        {/* Action */}
+        <Button className="w-full bg-gradient-to-r from-primary to-info hover:opacity-90">
           Start Challenge
-          <ArrowRight className="w-3 h-3 ml-2" />
+          <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
     </div>
