@@ -1,11 +1,21 @@
 import { useState } from "react";
-import { Play, RotateCcw, Sparkles, CheckCircle } from "lucide-react";
+import { Play, RotateCcw, Sparkles, CheckCircle, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CodeEditorProps {
   initialCode?: string;
+  initialLanguage?: string;
   exercise?: {
     title: string;
     instructions: string;
@@ -13,22 +23,37 @@ interface CodeEditorProps {
   };
 }
 
-const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
+const CodeEditor = ({ initialCode = "", initialLanguage = "jaclang", exercise }: CodeEditorProps) => {
   const [code, setCode] = useState(initialCode);
+  const [language, setLanguage] = useState(initialLanguage);
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const runCode = () => {
+  const runCode = async () => {
     setIsRunning(true);
-    // Simulate code execution
-    setTimeout(() => {
-      setOutput("Code executed successfully!\nOutput: Hello from Jaclang!");
-      setIsRunning(false);
-      if (exercise && output.includes(exercise.expectedOutput)) {
+    setIsCorrect(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('compile-code', {
+        body: { code, language },
+      });
+
+      if (error) throw error;
+
+      setOutput(data.output);
+
+      if (exercise && data.output.includes(exercise.expectedOutput)) {
         setIsCorrect(true);
+        toast.success("Correct! Well done.");
       }
-    }, 1000);
+    } catch (error: any) {
+      console.error("Error running code:", error);
+      setOutput(`Error: ${error.message || "Failed to execute code"}`);
+      toast.error("Execution failed");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const resetCode = () => {
@@ -38,27 +63,49 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
   };
 
   const getHint = () => {
-    setOutput("💡 Hint: Remember to use the 'walker' keyword for traversing nodes in Jaclang!");
+    const hints: Record<string, string> = {
+      jaclang: "💡 Hint: Remember to use the 'walker' keyword for traversing nodes!",
+      python: "💡 Hint: Python uses indentation to define blocks of code.",
+      javascript: "💡 Hint: Use console.log() for output in JavaScript.",
+      java: "💡 Hint: Java requires a class and a main method.",
+    };
+    setOutput(hints[language] || "💡 Hint: Check your syntax and try again!");
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Editor */}
       <Card className="p-6 bg-card border-primary/30">
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-foreground mb-2">
-            {exercise ? exercise.title : "Code Editor"}
-          </h3>
-          {exercise && (
-            <p className="text-sm text-muted-foreground mb-4">{exercise.instructions}</p>
-          )}
+        <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-foreground mb-1">
+              {exercise ? exercise.title : "Code Editor"}
+            </h3>
+            {exercise && (
+              <p className="text-sm text-muted-foreground">{exercise.instructions}</p>
+            )}
+          </div>
+
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-[180px] bg-background">
+              <Code className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="jaclang">Jaclang</SelectItem>
+              <SelectItem value="python">Python</SelectItem>
+              <SelectItem value="javascript">JavaScript</SelectItem>
+              <SelectItem value="java">Java</SelectItem>
+              <SelectItem value="cpp">C++</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          className="font-mono text-sm min-h-[300px] bg-background border-border resize-none"
-          placeholder="// Write your Jaclang code here..."
+          className="font-mono text-sm min-h-[350px] bg-background border-border resize-none"
+          placeholder={`// Write your ${language} code here...`}
         />
 
         <div className="flex items-center gap-3 mt-4">
@@ -95,7 +142,7 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
           )}
         </div>
 
-        <div className="bg-background border border-border rounded-lg p-4 min-h-[300px] font-mono text-sm">
+        <div className="bg-background border border-border rounded-lg p-4 min-h-[350px] font-mono text-sm overflow-auto">
           {output ? (
             <pre className="whitespace-pre-wrap text-foreground">{output}</pre>
           ) : (

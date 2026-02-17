@@ -20,34 +20,43 @@ serve(async (req) => {
       });
     }
 
-    if (code.length > 10000) {
-      return new Response(JSON.stringify({ error: "Code too long" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Mock execution logic
     console.log(`Compiling ${language} code...`);
 
-    // In a real scenario, this would call a sandboxed environment or a specific compiler API
     let output = "";
     let success = true;
 
-    if (language === "jaclang") {
-      if (code.includes("print")) {
-        // Simple mock of print statements
-        const matches = code.match(/print\((.*?)\)/g);
-        if (matches) {
-          output = matches.map(m => m.replace(/print\(['"]?(.*?)['"]?\)/, "$1")).join("\n");
-        } else {
-          output = "Program executed successfully (no output).";
-        }
-      } else {
-        output = "Program executed successfully.";
+    // Enhanced Mock Logic for multiple languages
+    const extractPrint = (code: string, pattern: RegExp) => {
+      const matches = code.match(pattern);
+      if (matches) {
+        return matches.map(m => {
+          const match = m.match(pattern);
+          return match ? match[1] : "";
+        }).join("\n");
       }
-    } else {
-      output = `Mock output for ${language}:\nProgram executed successfully.`;
+      return null;
+    };
+
+    switch (language.toLowerCase()) {
+      case "python":
+        output = extractPrint(code, /print\(['"]?(.*?)['"]?\)/g) || "Python program executed (no output).";
+        break;
+      case "javascript":
+      case "typescript":
+        output = extractPrint(code, /console\.log\(['"]?(.*?)['"]?\)/g) || "JS program executed (no output).";
+        break;
+      case "java":
+        output = extractPrint(code, /System\.out\.println\(['"]?(.*?)['"]?\)/g) || "Java program executed (no output).";
+        break;
+      case "cpp":
+      case "c++":
+        output = extractPrint(code, /cout\s*<<\s*['"]?(.*?)['"]?;/g) || "C++ program executed (no output).";
+        break;
+      case "jaclang":
+        output = extractPrint(code, /print\(['"]?(.*?)['"]?\)/g) || "Jaclang program executed (no output).";
+        break;
+      default:
+        output = `Mock output for ${language}:\nProgram executed successfully.`;
     }
 
     return new Response(JSON.stringify({
