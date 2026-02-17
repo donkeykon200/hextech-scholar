@@ -23,7 +23,11 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
   const [isGettingHint, setIsGettingHint] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const callAI = async (systemPrompt: string, userPrompt: string) => {
+  const callAI = async (
+    systemPrompt: string,
+    userPrompt: string,
+    onChunk?: (chunk: string) => void
+  ) => {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
@@ -38,7 +42,8 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
     });
 
     if (!resp.ok) {
-      throw new Error("Failed to connect to the Jaclang AI engine");
+      const errorData = await resp.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to connect to the Jaclang AI engine");
     }
 
     if (!resp.body) throw new Error("No response body");
@@ -48,27 +53,41 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
     let assistantContent = "";
     let textBuffer = "";
 
+    const processLine = (line: string) => {
+      const cleanLine = line.trim();
+      if (!cleanLine || cleanLine.startsWith(":") || !cleanLine.startsWith("data: ")) return;
+
+      const jsonStr = cleanLine.slice(6).trim();
+      if (jsonStr === "[DONE]") return;
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) {
+          assistantContent += content;
+          onChunk?.(content);
+        }
+      } catch (e) {
+        // partial json, ignore
+      }
+    };
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
       textBuffer += decoder.decode(value, { stream: true });
-      const lines = textBuffer.split("\n");
-      textBuffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
-            }
-          } catch (e) { /* partial json */ }
-        }
+      let newlineIndex: number;
+      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+        const line = textBuffer.slice(0, newlineIndex);
+        textBuffer = textBuffer.slice(newlineIndex + 1);
+        processLine(line);
       }
+    }
+
+    // Final flush
+    if (textBuffer.trim()) {
+      textBuffer.split("\n").forEach(processLine);
     }
 
     return assistantContent;
@@ -76,7 +95,7 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
 
   const runCode = async () => {
     setIsRunning(true);
-    setOutput("Running Jaclang code...\n");
+    setOutput("");
     setIsCorrect(false);
 
     try {
@@ -87,8 +106,11 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
 
       const userPrompt = `Execute this Jaclang code:\n\n\`\`\`jaclang\n${code}\n\`\`\``;
 
-      const result = await callAI(systemPrompt, userPrompt);
-      setOutput(result);
+      let accumulatedOutput = "";
+      const result = await callAI(systemPrompt, userPrompt, (chunk) => {
+        accumulatedOutput += chunk;
+        setOutput(accumulatedOutput);
+      });
 
       if (exercise && result.toLowerCase().includes(exercise.expectedOutput.toLowerCase())) {
         setIsCorrect(true);
@@ -96,7 +118,7 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
       }
     } catch (error) {
       console.error(error);
-      setOutput("Error: " + (error instanceof Error ? error.message : "Failed to run code"));
+      setOutput((prev) => prev + "\nError: " + (error instanceof Error ? error.message : "Failed to run code"));
       toast.error("Failed to execute code");
     } finally {
       setIsRunning(false);
@@ -112,15 +134,29 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
   const getHint = async () => {
     setIsGettingHint(true);
     try {
+      console.log("Getting hint for exercise:", exercise?.title);
       const systemPrompt = `You are an expert Jaclang tutor. Provide a brief, helpful hint for the following exercise based on the user's current code.
       Keep the hint concise and encouraging. Do not give away the full solution.`;
 
       const userPrompt = `Exercise: ${exercise?.title || "Jaclang Coding"}\nInstructions: ${exercise?.instructions || "Write Jaclang code."}\nExpected Output: ${exercise?.expectedOutput || ""}\n\nMy current code:\n\`\`\`jaclang\n${code}\n\`\`\``;
 
-      const hint = await callAI(systemPrompt, userPrompt);
-      setOutput((prev) => prev + "\n\n💡 Hint: " + hint);
+      const HINT_PREFIX = "\n\nHint: ";
+      let hintAccumulated = HINT_PREFIX;
+
+      // Initial append of the prefix
+      setOutput((prev) => prev + HINT_PREFIX);
+
+      const result = await callAI(systemPrompt, userPrompt, (chunk) => {
+        hintAccumulated += chunk;
+        setOutput((prev) => {
+          const index = prev.lastIndexOf(HINT_PREFIX);
+          if (index === -1) return prev + chunk;
+          return prev.substring(0, index) + hintAccumulated;
+        });
+      });
+      console.log("Hint generation complete length:", result.length);
     } catch (error) {
-      console.error(error);
+      console.error("Hint error:", error);
       toast.error("Failed to get hint");
     } finally {
       setIsGettingHint(false);
@@ -194,9 +230,9 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
           )}
         </div>
 
-        <div className="bg-background border border-border rounded-lg p-4 min-h-[300px] font-mono text-sm">
+        <div className="bg-background border border-border rounded-lg p-4 min-h-[300px] font-mono text-sm overflow-auto">
           {output ? (
-            <pre className="whitespace-pre-wrap text-foreground">{output}</pre>
+            <pre className="whitespace-pre-wrap text-foreground" data-testid="output-area">{output}</pre>
           ) : (
             <p className="text-muted-foreground">Output will appear here...</p>
           )}
