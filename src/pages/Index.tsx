@@ -246,7 +246,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
 
         {/* Center Column - Daily Challenge & Recent Activity */}
         <div className="lg:col-span-2 space-y-6">
-          <DailyChallenge />
+          <DailyChallenge onClick={() => onNavigate("playground")} />
           
           {/* Recent Lessons */}
           <div className="glass-panel rounded-2xl p-6">
@@ -268,6 +268,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
               ].map((lesson, i) => (
                 <div 
                   key={i}
+                  onClick={() => onNavigate("lessons")}
                   className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">

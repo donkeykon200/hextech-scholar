@@ -36,6 +36,7 @@ const AIAssistant = () => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
       body: JSON.stringify({ messages: userMessages }),
     });
@@ -86,17 +87,17 @@ const AIAssistant = () => {
             assistantContent += content;
             setMessages((prev) => {
               const newMessages = [...prev];
-              newMessages[newMessages.length - 1] = {
-                role: "assistant",
-                content: assistantContent,
-              };
+              if (newMessages.length > 0) {
+                newMessages[newMessages.length - 1] = {
+                  role: "assistant",
+                  content: assistantContent,
+                };
+              }
               return newMessages;
             });
           }
-        } catch {
-          // Incomplete JSON, put back and wait
-          textBuffer = line + "\n" + textBuffer;
-          break;
+        } catch (e) {
+          console.warn("Error parsing JSON chunk", e);
         }
       }
     }

@@ -1,9 +1,16 @@
 import { Clock, Gift, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const DailyChallenge = () => {
+interface DailyChallengeProps {
+  onClick?: () => void;
+}
+
+const DailyChallenge = ({ onClick }: DailyChallengeProps) => {
   return (
-    <div className="hologram rounded-2xl p-6 relative overflow-hidden">
+    <div
+      className="hologram rounded-2xl p-6 relative overflow-hidden cursor-pointer"
+      onClick={onClick}
+    >
       {/* Glow Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 pointer-events-none" />
       
@@ -49,7 +56,13 @@ const DailyChallenge = () => {
         </div>
 
         {/* Action */}
-        <Button className="w-full bg-gradient-to-r from-primary to-info hover:opacity-90">
+        <Button
+          className="w-full bg-gradient-to-r from-primary to-info hover:opacity-90"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+        >
           Start Challenge
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>

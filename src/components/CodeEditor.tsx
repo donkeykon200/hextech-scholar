@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Play, RotateCcw, Sparkles, CheckCircle } from "lucide-react";
+import { Play, RotateCcw, Sparkles, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/jaclang-tutor`;
 
 interface CodeEditorProps {
   initialCode?: string;
@@ -17,18 +20,87 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isGettingHint, setIsGettingHint] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const runCode = () => {
-    setIsRunning(true);
-    // Simulate code execution
-    setTimeout(() => {
-      setOutput("Code executed successfully!\nOutput: Hello from Jaclang!");
-      setIsRunning(false);
-      if (exercise && output.includes(exercise.expectedOutput)) {
-        setIsCorrect(true);
+  const callAI = async (systemPrompt: string, userPrompt: string) => {
+    const resp = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({
+        systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+
+    if (!resp.ok) {
+      throw new Error("Failed to connect to the Jaclang AI engine");
+    }
+
+    if (!resp.body) throw new Error("No response body");
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let assistantContent = "";
+    let textBuffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      textBuffer += decoder.decode(value, { stream: true });
+      const lines = textBuffer.split("\n");
+      textBuffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              assistantContent += content;
+            }
+          } catch (e) { /* partial json */ }
+        }
       }
-    }, 1000);
+    }
+
+    return assistantContent;
+  };
+
+  const runCode = async () => {
+    setIsRunning(true);
+    setOutput("Running Jaclang code...\n");
+    setIsCorrect(false);
+
+    try {
+      const systemPrompt = `You are a Jaclang code executor. Simulate the execution of the provided Jaclang code.
+      Output the results exactly as they would appear in a terminal.
+      If there are errors, describe them clearly.
+      Do not provide any explanation other than the terminal output.`;
+
+      const userPrompt = `Execute this Jaclang code:\n\n\`\`\`jaclang\n${code}\n\`\`\``;
+
+      const result = await callAI(systemPrompt, userPrompt);
+      setOutput(result);
+
+      if (exercise && result.toLowerCase().includes(exercise.expectedOutput.toLowerCase())) {
+        setIsCorrect(true);
+        toast.success("Exercise completed correctly!");
+      }
+    } catch (error) {
+      console.error(error);
+      setOutput("Error: " + (error instanceof Error ? error.message : "Failed to run code"));
+      toast.error("Failed to execute code");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const resetCode = () => {
@@ -37,8 +109,22 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
     setIsCorrect(false);
   };
 
-  const getHint = () => {
-    setOutput("💡 Hint: Remember to use the 'walker' keyword for traversing nodes in Jaclang!");
+  const getHint = async () => {
+    setIsGettingHint(true);
+    try {
+      const systemPrompt = `You are an expert Jaclang tutor. Provide a brief, helpful hint for the following exercise based on the user's current code.
+      Keep the hint concise and encouraging. Do not give away the full solution.`;
+
+      const userPrompt = `Exercise: ${exercise?.title || "Jaclang Coding"}\nInstructions: ${exercise?.instructions || "Write Jaclang code."}\nExpected Output: ${exercise?.expectedOutput || ""}\n\nMy current code:\n\`\`\`jaclang\n${code}\n\`\`\``;
+
+      const hint = await callAI(systemPrompt, userPrompt);
+      setOutput((prev) => prev + "\n\n💡 Hint: " + hint);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to get hint");
+    } finally {
+      setIsGettingHint(false);
+    }
   };
 
   return (
@@ -67,18 +153,31 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
             disabled={isRunning}
             className="bg-primary hover:bg-primary/90 text-primary-foreground glow-cyan"
           >
-            <Play className="w-4 h-4 mr-2" />
+            {isRunning ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 mr-2" />
+            )}
             {isRunning ? "Running..." : "Run Code"}
           </Button>
 
-          <Button onClick={resetCode} variant="secondary">
+          <Button onClick={resetCode} variant="secondary" disabled={isRunning}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
           </Button>
 
-          <Button onClick={getHint} variant="outline" className="ml-auto">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Get Hint
+          <Button
+            onClick={getHint}
+            disabled={isGettingHint || isRunning}
+            variant="outline"
+            className="ml-auto"
+          >
+            {isGettingHint ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            {isGettingHint ? "Getting Hint..." : "Get Hint"}
           </Button>
         </div>
       </Card>
