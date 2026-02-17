@@ -29,4 +29,7 @@ double_confirm_changes = true
 enable_confirmations = false
 
 [functions.jaclang-tutor]
-verify_jwt = false
+verify_jwt = true
+
+[functions.compile-code]
+verify_jwt = true
