@@ -1,8 +1,21 @@
-import { Search, Bell, User, Sparkles } from "lucide-react";
+import { Search, Bell, User, Sparkles, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const TopNavbar = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAuthClick = async () => {
+    if (user) {
+      await signOut();
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-16 glass-panel border-b border-border/50">
       <div className="h-full px-6 flex items-center justify-between">
@@ -48,12 +61,22 @@ const TopNavbar = () => {
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
           </Button>
 
-          {/* User Profile */}
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border border-border flex items-center justify-center">
-              <User className="w-4 h-4 text-foreground" />
+          {/* User Profile / Auth */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border border-border flex items-center justify-center">
+                <User className="w-4 h-4 text-foreground" />
+              </div>
+              <span className="text-sm text-foreground hidden md:inline">{user.email?.split("@")[0]}</span>
+              <Button variant="ghost" size="icon" onClick={handleAuthClick} title="Sign out">
+                <LogOut className="w-4 h-4 text-muted-foreground" />
+              </Button>
             </div>
-          </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleAuthClick} className="border-primary/50 hover:bg-primary/10">
+              Sign In
+            </Button>
+          )}
         </div>
       </div>
     </nav>
