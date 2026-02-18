@@ -23,6 +23,7 @@ import LearningRoadmap from "@/components/LearningRoadmap";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [selectedLesson, setSelectedLesson] = useState<any>(null);
 
   const sampleCode = `// Define a simple walker in Jaclang
 walker greet {
@@ -45,6 +46,11 @@ with entry {
     expectedOutput: "Hello from Jaclang!",
   };
 
+  const handleLessonSelect = (lesson: any) => {
+    setSelectedLesson(lesson);
+    setActiveSection("playground");
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case "lessons":
@@ -54,17 +60,28 @@ with entry {
               <h2 className="text-3xl font-bold text-foreground mb-2">Your Learning Path</h2>
               <p className="text-muted-foreground">Complete lessons to unlock new concepts and earn XP</p>
             </div>
-            <LessonPath />
+            <LessonPath onLessonSelect={handleLessonSelect} />
           </div>
         );
       case "playground":
         return (
           <div className="max-w-7xl mx-auto">
             <div className="mb-6 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Code Playground</h2>
-              <p className="text-muted-foreground">Experiment with Jaclang in a safe sandbox environment</p>
+              <h2 className="text-3xl font-bold text-foreground mb-2">
+                {selectedLesson ? selectedLesson.title : "Code Playground"}
+              </h2>
+              <p className="text-muted-foreground">
+                {selectedLesson ? "Complete this exercise to earn XP" : "Experiment with Jaclang in a safe sandbox environment"}
+              </p>
             </div>
-            <CodeEditor initialCode={sampleCode} exercise={sampleExercise} />
+            <CodeEditor
+              initialCode={selectedLesson?.code_template || sampleCode}
+              exercise={selectedLesson ? {
+                title: selectedLesson.title,
+                instructions: selectedLesson.content,
+                expectedOutput: selectedLesson.expected_output
+              } : sampleExercise}
+            />
           </div>
         );
       case "ai-tutor":
