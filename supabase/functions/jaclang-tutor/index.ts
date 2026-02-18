@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, systemPrompt: customSystemPrompt } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -20,7 +20,7 @@ serve(async (req) => {
 
     console.log("Starting Jaclang tutor request with", messages.length, "messages");
 
-    const systemPrompt = `You are an expert Jaclang tutor and AI learning assistant for the Jaclang Academy. Your role is to help students learn Jaclang programming language and the Object Spatial Paradigm (OSP).
+    const defaultSystemPrompt = `You are an expert Jaclang tutor and AI learning assistant for the Jaclang Academy. Your role is to help students learn Jaclang programming language and the Object Spatial Paradigm (OSP).
 
 ## Your Knowledge Areas:
 - **Jaclang Syntax**: Modern Python-like syntax with unique constructs
@@ -63,6 +63,8 @@ with entry {
 - Celebrate progress and achievements
 - Keep responses concise but informative`;
 
+    const finalSystemPrompt = customSystemPrompt || defaultSystemPrompt;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -70,9 +72,9 @@ with entry {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.0-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: finalSystemPrompt },
           ...messages,
         ],
         stream: true,

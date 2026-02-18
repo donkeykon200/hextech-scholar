@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Play, RotateCcw, Sparkles, CheckCircle } from "lucide-react";
+import { Play, RotateCcw, Sparkles, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { streamAIResponse } from "@/lib/ai-service";
 
 interface CodeEditorProps {
   initialCode?: string;
@@ -17,18 +19,43 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
   const [code, setCode] = useState(initialCode);
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isGettingHint, setIsGettingHint] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const runCode = () => {
+  const runCode = async () => {
     setIsRunning(true);
-    // Simulate code execution
-    setTimeout(() => {
-      setOutput("Code executed successfully!\nOutput: Hello from Jaclang!");
-      setIsRunning(false);
-      if (exercise && output.includes(exercise.expectedOutput)) {
+    setOutput("");
+    setIsCorrect(false);
+
+    try {
+      const systemPrompt = `You are a Jaclang code executor. Simulate the execution of the provided Jaclang code.
+      Output the results exactly as they would appear in a terminal.
+      If there are errors, describe them clearly.
+      Do not provide any explanation other than the terminal output.`;
+
+      const userPrompt = `Execute this Jaclang code:\n\n\`\`\`jaclang\n${code}\n\`\`\``;
+
+      let accumulatedOutput = "";
+      const result = await streamAIResponse({
+        systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+        onChunk: (chunk) => {
+          accumulatedOutput += chunk;
+          setOutput(accumulatedOutput);
+        },
+      });
+
+      if (exercise && result.toLowerCase().includes(exercise.expectedOutput.toLowerCase())) {
         setIsCorrect(true);
+        toast.success("Exercise completed correctly!");
       }
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      setOutput((prev) => prev + "\nError: " + (error instanceof Error ? error.message : "Failed to run code"));
+      toast.error("Failed to execute code");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const resetCode = () => {
@@ -37,8 +64,40 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
     setIsCorrect(false);
   };
 
-  const getHint = () => {
-    setOutput("💡 Hint: Remember to use the 'walker' keyword for traversing nodes in Jaclang!");
+  const getHint = async () => {
+    setIsGettingHint(true);
+    try {
+      console.log("Getting hint for exercise:", exercise?.title);
+      const systemPrompt = `You are an expert Jaclang tutor. Provide a brief, helpful hint for the following exercise based on the user's current code.
+      Keep the hint concise and encouraging. Do not give away the full solution.`;
+
+      const userPrompt = `Exercise: ${exercise?.title || "Jaclang Coding"}\nInstructions: ${exercise?.instructions || "Write Jaclang code."}\nExpected Output: ${exercise?.expectedOutput || ""}\n\nMy current code:\n\`\`\`jaclang\n${code}\n\`\`\``;
+
+      const HINT_PREFIX = "\n\nHint: ";
+      let hintAccumulated = HINT_PREFIX;
+
+      // Initial append of the prefix
+      setOutput((prev) => prev + HINT_PREFIX);
+
+      const result = await streamAIResponse({
+        systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+        onChunk: (chunk) => {
+          hintAccumulated += chunk;
+          setOutput((prev) => {
+            const index = prev.lastIndexOf(HINT_PREFIX);
+            if (index === -1) return prev + chunk;
+            return prev.substring(0, index) + hintAccumulated;
+          });
+        },
+      });
+      console.log("Hint generation complete length:", result.length);
+    } catch (error) {
+      console.error("Hint error:", error);
+      toast.error("Failed to get hint");
+    } finally {
+      setIsGettingHint(false);
+    }
   };
 
   return (
@@ -67,18 +126,31 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
             disabled={isRunning}
             className="bg-primary hover:bg-primary/90 text-primary-foreground glow-cyan"
           >
-            <Play className="w-4 h-4 mr-2" />
+            {isRunning ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 mr-2" />
+            )}
             {isRunning ? "Running..." : "Run Code"}
           </Button>
 
-          <Button onClick={resetCode} variant="secondary">
+          <Button onClick={resetCode} variant="secondary" disabled={isRunning}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
           </Button>
 
-          <Button onClick={getHint} variant="outline" className="ml-auto">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Get Hint
+          <Button
+            onClick={getHint}
+            disabled={isGettingHint || isRunning}
+            variant="outline"
+            className="ml-auto"
+          >
+            {isGettingHint ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            {isGettingHint ? "Getting Hint..." : "Get Hint"}
           </Button>
         </div>
       </Card>
@@ -95,9 +167,9 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
           )}
         </div>
 
-        <div className="bg-background border border-border rounded-lg p-4 min-h-[300px] font-mono text-sm">
+        <div className="bg-background border border-border rounded-lg p-4 min-h-[300px] font-mono text-sm overflow-auto">
           {output ? (
-            <pre className="whitespace-pre-wrap text-foreground">{output}</pre>
+            <pre className="whitespace-pre-wrap text-foreground" data-testid="output-area">{output}</pre>
           ) : (
             <p className="text-muted-foreground">Output will appear here...</p>
           )}
