@@ -6,7 +6,9 @@ import {
   Bug, 
   RotateCcw,
   Play,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  ListChecks
 } from "lucide-react";
 import TopNavbar from "@/components/layout/TopNavbar";
 import Sidebar3D from "@/components/layout/Sidebar3D";
@@ -108,7 +110,68 @@ with entry {
                   color={i === 0 ? "success" : i === 1 ? "warning" : "accent"}
                   progress={project.progress}
                   action="Start Project"
+                  onClick={() => setActiveSection("playground")}
                 />
+              ))}
+            </div>
+          </div>
+        );
+      case "cheatsheets":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Cheatsheets</h2>
+              <p className="text-muted-foreground">Quick reference guides for Jaclang concepts</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { title: "Syntax Basics", desc: "Variables, types, and core language constructs" },
+                { title: "Node & Walker API", desc: "Complete reference for nodes and walkers" },
+                { title: "Edge Operations", desc: "How to create and traverse edges" },
+                { title: "OSP Patterns", desc: "Common Object Spatial Programming patterns" },
+              ].map((sheet, i) => (
+                <DashboardCard
+                  key={i}
+                  title={sheet.title}
+                  description={sheet.desc}
+                  icon={FileText}
+                  color={i % 2 === 0 ? "primary" : "info"}
+                  action="View Cheatsheet"
+                  onClick={() => setActiveSection("ai-tutor")}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      case "summaries":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Lesson Summaries</h2>
+              <p className="text-muted-foreground">Review key takeaways from completed lessons</p>
+            </div>
+            <div className="space-y-4">
+              {[
+                { title: "Introduction to Jaclang", points: ["Syntax basics", "Hello World program", "REPL usage"], completed: true },
+                { title: "Understanding Nodes", points: ["Node declaration", "Properties & methods", "Node inheritance"], completed: true },
+                { title: "Working with Walkers", points: ["Walker creation", "Graph traversal", "State management"], completed: false },
+              ].map((summary, i) => (
+                <div key={i} className="glass-panel rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-foreground">{summary.title}</h3>
+                    {summary.completed && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-success/20 text-success">Completed</span>
+                    )}
+                  </div>
+                  <ul className="space-y-2">
+                    {summary.points.map((point, j) => (
+                      <li key={j} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${summary.completed ? 'bg-success' : 'bg-muted-foreground'}`} />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </div>
           </div>
@@ -133,6 +196,7 @@ with entry {
                   icon={Bug}
                   color="destructive"
                   action={`Level ${game.level}`}
+                  onClick={() => setActiveSection("playground")}
                 />
               ))}
             </div>
@@ -185,7 +249,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <HeroSection />
+      <HeroSection onNavigate={onNavigate} />
 
       {/* Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -246,7 +310,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
 
         {/* Center Column - Daily Challenge & Recent Activity */}
         <div className="lg:col-span-2 space-y-6">
-          <DailyChallenge />
+          <DailyChallenge onNavigate={onNavigate} />
           
           {/* Recent Lessons */}
           <div className="glass-panel rounded-2xl p-6">
@@ -268,6 +332,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
               ].map((lesson, i) => (
                 <div 
                   key={i}
+                  onClick={() => onNavigate("lessons")}
                   className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">

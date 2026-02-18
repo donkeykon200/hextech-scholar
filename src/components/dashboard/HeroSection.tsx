@@ -1,7 +1,11 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  onNavigate?: (section: string) => void;
+}
+
+const HeroSection = ({ onNavigate }: HeroSectionProps) => {
   return (
     <section className="relative py-12 px-8 rounded-3xl glass-panel overflow-hidden volumetric-light">
       {/* Animated Background Elements */}
@@ -47,11 +51,11 @@ const HeroSection = () => {
           </p>
 
           <div className="flex items-center gap-4">
-            <Button size="lg" className="bg-gradient-to-r from-primary to-info hover:opacity-90 shadow-glow-md">
+            <Button size="lg" className="bg-gradient-to-r from-primary to-info hover:opacity-90 shadow-glow-md" onClick={() => onNavigate?.("lessons")}>
               Start Learning
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            <Button size="lg" variant="outline" className="border-border/50 hover:bg-secondary/50">
+            <Button size="lg" variant="outline" className="border-border/50 hover:bg-secondary/50" onClick={() => onNavigate?.("roadmap")}>
               View Roadmap
             </Button>
           </div>
