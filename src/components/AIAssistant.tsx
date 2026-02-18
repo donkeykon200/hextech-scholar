@@ -1,9 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Bot, User, Loader2 } from "lucide-react";
+import { Send, Sparkles, Bot, User, Loader2, Code } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface Message {
@@ -14,10 +22,11 @@ interface Message {
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/jaclang-tutor`;
 
 const AIAssistant = () => {
+  const [language, setLanguage] = useState("jaclang");
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm your Jaclang AI tutor. I can help you understand nodes, walkers, edges, and everything about Object Spatial Programming. What would you like to learn today?",
+      content: "Hello! I'm your AI tutor. I can help you learn Jaclang, Python, JavaScript, and more. What would you like to learn today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -31,13 +40,16 @@ const AIAssistant = () => {
   }, [messages]);
 
   const streamChat = async (userMessages: Message[]) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ messages: userMessages }),
+      body: JSON.stringify({ messages: userMessages, language }),
     });
 
     if (!resp.ok) {
@@ -100,33 +112,6 @@ const AIAssistant = () => {
         }
       }
     }
-
-    // Final flush
-    if (textBuffer.trim()) {
-      for (let raw of textBuffer.split("\n")) {
-        if (!raw) continue;
-        if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-        if (raw.startsWith(":") || raw.trim() === "") continue;
-        if (!raw.startsWith("data: ")) continue;
-        const jsonStr = raw.slice(6).trim();
-        if (jsonStr === "[DONE]") continue;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) {
-            assistantContent += content;
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1] = {
-                role: "assistant",
-                content: assistantContent,
-              };
-              return newMessages;
-            });
-          }
-        } catch { /* ignore */ }
-      }
-    }
   };
 
   const handleSend = async () => {
@@ -140,7 +125,6 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Only send the conversation history (excluding the initial greeting for API)
       const apiMessages = updatedMessages.slice(1).map((m) => ({
         role: m.role,
         content: m.content,
@@ -150,38 +134,52 @@ const AIAssistant = () => {
     } catch (error) {
       console.error("AI tutor error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to get response");
-      // Remove the empty assistant message on error
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const suggestedQuestions = [
-    "What are nodes in Jaclang?",
-    "How do walkers work?",
-    "Show me an edge example",
-    "What is OSP?",
-  ];
+  const suggestedQuestions: Record<string, string[]> = {
+    jaclang: ["What are nodes in Jaclang?", "How do walkers work?", "What is OSP?"],
+    python: ["Python vs Java", "How to use list comprehensions?", "What are decorators?"],
+    javascript: ["Async/await in JS", "Closures explained", "What is the DOM?"],
+  };
 
   return (
     <Card className="flex flex-col h-[600px] border-primary/30 overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-border bg-gradient-to-r from-primary/10 to-accent/10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center glow-cyan">
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <div>
-            <h3 className="font-bold text-foreground">Jaclang AI Tutor</h3>
-            <p className="text-xs text-muted-foreground">Powered by Lovable AI</p>
-          </div>
-          {isLoading && (
-            <div className="ml-auto flex items-center gap-2 text-primary">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">Thinking...</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center glow-cyan">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-          )}
+            <div>
+              <h3 className="font-bold text-foreground">AI Coding Tutor</h3>
+              <p className="text-xs text-muted-foreground">Expert assistance for any language</p>
+            </div>
+          </div>
+
+          <div className="sm:ml-auto flex items-center gap-3">
+            {isLoading && (
+              <div className="flex items-center gap-2 text-primary">
+                <Loader2 className="w-4 h-4 animate-spin" />
+              </div>
+            )}
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-[140px] bg-background/50 h-9">
+                <Code className="w-3.5 h-3.5 mr-2" />
+                <SelectValue placeholder="Language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="jaclang">Jaclang</SelectItem>
+                <SelectItem value="python">Python</SelectItem>
+                <SelectItem value="javascript">JavaScript</SelectItem>
+                <SelectItem value="java">Java</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -207,8 +205,8 @@ const AIAssistant = () => {
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
                   message.role === "user"
-                    ? "bg-accent/20 text-foreground"
-                    : "bg-card border border-border text-foreground"
+                    ? "bg-accent/20 text-foreground shadow-sm"
+                    : "bg-card border border-border text-foreground shadow-sm"
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -221,9 +219,9 @@ const AIAssistant = () => {
       {/* Suggestions */}
       {messages.length === 1 && (
         <div className="px-4 pb-2">
-          <p className="text-xs text-muted-foreground mb-2">Try asking:</p>
+          <p className="text-xs text-muted-foreground mb-2">Try asking about {language}:</p>
           <div className="flex flex-wrap gap-2">
-            {suggestedQuestions.map((q, i) => (
+            {(suggestedQuestions[language] || suggestedQuestions['jaclang']).map((q, i) => (
               <button
                 key={i}
                 onClick={() => setInput(q)}
@@ -243,7 +241,7 @@ const AIAssistant = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            placeholder="Ask about Jaclang, nodes, walkers..."
+            placeholder={`Ask about ${language}...`}
             className="bg-input border-border focus:border-primary"
             disabled={isLoading}
           />
