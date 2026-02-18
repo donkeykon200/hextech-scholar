@@ -5,13 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/jaclang-tutor`;
+import { streamAIResponse, Message } from "@/lib/ai-service";
 
 const AIAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -30,85 +24,6 @@ const AIAssistant = () => {
     }
   }, [messages]);
 
-  const streamChat = async (userMessages: Message[]) => {
-    const resp = await fetch(CHAT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-      body: JSON.stringify({ messages: userMessages }),
-    });
-
-    if (!resp.ok) {
-      const errorData = await resp.json().catch(() => ({}));
-      if (resp.status === 429) {
-        throw new Error("Rate limit exceeded. Please wait a moment and try again.");
-      }
-      if (resp.status === 402) {
-        throw new Error("AI credits depleted. Please add more credits to continue.");
-      }
-      throw new Error(errorData.error || "Failed to get response from AI tutor");
-    }
-
-    if (!resp.body) throw new Error("No response body");
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let textBuffer = "";
-    let assistantContent = "";
-
-    // Add empty assistant message that we'll update
-    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-    const processLine = (line: string) => {
-      const cleanLine = line.trim();
-      if (!cleanLine || cleanLine.startsWith(":") || !cleanLine.startsWith("data: ")) return;
-
-      const jsonStr = cleanLine.slice(6).trim();
-      if (jsonStr === "[DONE]") return;
-
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) {
-          assistantContent += content;
-          setMessages((prev) => {
-            const newMessages = [...prev];
-            if (newMessages.length > 0) {
-              newMessages[newMessages.length - 1] = {
-                role: "assistant",
-                content: assistantContent,
-              };
-            }
-            return newMessages;
-          });
-        }
-      } catch (e) {
-        // partial json
-      }
-    };
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      textBuffer += decoder.decode(value, { stream: true });
-      let newlineIndex: number;
-      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-        const line = textBuffer.slice(0, newlineIndex);
-        textBuffer = textBuffer.slice(newlineIndex + 1);
-        processLine(line);
-      }
-    }
-
-    // Final flush
-    if (textBuffer.trim()) {
-      textBuffer.split("\n").forEach(processLine);
-    }
-  };
-
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -120,13 +35,32 @@ const AIAssistant = () => {
     setIsLoading(true);
 
     try {
+      // Add empty assistant message that we'll update
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
       // Only send the conversation history (excluding the initial greeting for API)
       const apiMessages = updatedMessages.slice(1).map((m) => ({
-        role: m.role,
+        role: m.role as "user" | "assistant",
         content: m.content,
       }));
       
-      await streamChat(apiMessages);
+      let accumulatedContent = "";
+      await streamAIResponse({
+        messages: apiMessages,
+        onChunk: (chunk) => {
+          accumulatedContent += chunk;
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            if (newMessages.length > 0) {
+              newMessages[newMessages.length - 1] = {
+                role: "assistant",
+                content: accumulatedContent,
+              };
+            }
+            return newMessages;
+          });
+        },
+      });
     } catch (error) {
       console.error("AI tutor error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to get response");
