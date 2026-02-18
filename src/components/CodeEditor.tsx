@@ -31,9 +31,10 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
     setIsRunning(true);
     // Simulate code execution
     setTimeout(() => {
-      setOutput(`[${language}] Executing...\nCode executed successfully!\nOutput: Hello from ${language}!`);
+      const newOutput = `[${language}] Executing...\nCode executed successfully!\nOutput: Hello from ${language}!`;
+      setOutput(newOutput);
       setIsRunning(false);
-      if (exercise && output.includes(exercise.expectedOutput)) {
+      if (exercise && newOutput.includes(exercise.expectedOutput)) {
         setIsCorrect(true);
       }
     }, 1000);
@@ -105,7 +106,7 @@ const CodeEditor = ({ initialCode = "", exercise }: CodeEditorProps) => {
           <Button
             onClick={runCode}
             disabled={isRunning}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.3)] animate-pulse-slow"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)] animate-pulse"
           >
             <Play className="w-4 h-4 mr-2" />
             {isRunning ? "Running..." : "Run Code"}

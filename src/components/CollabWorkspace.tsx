@@ -42,7 +42,7 @@ const CollabWorkspace = () => {
                 <Handshake size={14} />
                 <span>{project.seekers} helping</span>
               </div>
-              <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(var(--primary),0.3)]">
+              <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
                 <UserPlus size={16} />
                 Join & Help
               </button>

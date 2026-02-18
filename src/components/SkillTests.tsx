@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Zap, Lock, Timer, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SkillTests = () => {
   const [examMode, setExamMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(1800); // 30 mins
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (examMode && timeLeft > 0) {
+      timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [examMode, timeLeft]);
 
   const tests = [
     { level: 1, title: "Syntax Mastery", reward: "50 XP", locked: false, description: "Basic syntax, types, and print statements." },
@@ -22,7 +30,7 @@ const SkillTests = () => {
 
   if (examMode) {
     return (
-      <div className="glass-panel p-12 rounded-3xl border-2 border-primary animate-pulse-slow">
+      <div className="glass-panel p-12 rounded-3xl border-2 border-primary">
         <div className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
@@ -30,7 +38,7 @@ const SkillTests = () => {
           </div>
           <div className="flex items-center gap-2 font-mono text-2xl text-primary">
             <Timer />
-            <span>29:59</span>
+            <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
           </div>
         </div>
 
@@ -51,7 +59,7 @@ const SkillTests = () => {
 
           <div className="pt-8 flex justify-between">
             <button onClick={() => setExamMode(false)} className="text-muted-foreground hover:text-red-500 underline underline-offset-4">Terminate Exam</button>
-            <button className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-[0_0_30px_rgba(var(--primary),0.4)]">Submit Answer</button>
+            <button className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-[0_0_30px_hsl(var(--primary)/0.4)]">Submit Answer</button>
           </div>
         </div>
       </div>
