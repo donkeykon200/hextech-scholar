@@ -1,70 +1,75 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { db } from '@/lib/db';
+import { db } from '@/db/localDb';
+import { useToast } from './use-toast';
 
 export const useSync = (userId: string | undefined) => {
+  const { toast } = useToast();
+
   useEffect(() => {
     if (!userId) return;
 
     const syncData = async () => {
-      // 1. Fetch courses and lessons from Supabase and cache them locally
-      const { data: courses } = await supabase.from('courses').select('*');
-      if (courses) {
-        await db.courses.bulkPut(courses);
-      }
+      try {
+        // 1. Push local changes to Supabase
+        const unsyncedProgress = await db.lessonProgress
+          .where('synced')
+          .equals(0)
+          .toArray();
 
-      const { data: lessons } = await supabase.from('lessons').select('*');
-      if (lessons) {
-        await db.lessons.bulkPut(lessons);
-      }
+        for (const item of unsyncedProgress) {
+          const { error } = await supabase
+            .from('user_lesson_progress')
+            .upsert({
+              user_id: item.user_id,
+              lesson_id: item.lesson_id,
+              status: item.status,
+              completed_at: item.completed_at,
+              score: item.score
+            });
 
-      // 2. Sync local unsynced progress to Supabase
-      const unsyncedProgress = await db.progress
-        .where('synced')
-        .equals(0) // false
-        .toArray();
-
-      for (const p of unsyncedProgress) {
-        const { error } = await supabase.from('user_lesson_progress').upsert({
-          user_id: p.user_id,
-          lesson_id: p.lesson_id,
-          status: p.status,
-          completed_at: p.completed_at,
-          score: p.score
-        });
-
-        if (!error) {
-          await db.progress.update([p.lesson_id, p.user_id], { synced: true });
+          if (!error) {
+            await db.lessonProgress.update(item.id!, { synced: 1 });
+          }
         }
-      }
 
-      // 3. Fetch latest progress from Supabase
-      const { data: remoteProgress } = await supabase
-        .from('user_lesson_progress')
-        .select('*')
-        .eq('user_id', userId);
+        // 2. Pull changes from Supabase
+        const { data: remoteProgress, error: progressError } = await supabase
+          .from('user_lesson_progress')
+          .select('*')
+          .eq('user_id', userId);
 
-      if (remoteProgress) {
-        await db.progress.bulkPut(
-          remoteProgress.map((p) => ({
-            lesson_id: p.lesson_id,
-            user_id: p.user_id,
-            status: p.status as any,
-            completed_at: p.completed_at,
-            score: p.score,
-            synced: true
-          }))
-        );
+        if (!progressError && remoteProgress) {
+          for (const remote of remoteProgress) {
+            const local = await db.lessonProgress
+              .where({ lesson_id: remote.lesson_id, user_id: userId })
+              .first();
+
+            if (!local || new Date(remote.completed_at || 0) > new Date(local.completed_at || 0)) {
+              await db.lessonProgress.put({
+                ...local,
+                lesson_id: remote.lesson_id,
+                user_id: userId,
+                status: remote.status as any,
+                completed_at: remote.completed_at,
+                score: remote.score,
+                synced: 1
+              });
+            }
+          }
+        }
+
+        console.log('Sync complete');
+      } catch (err) {
+        console.error('Sync failed', err);
       }
     };
 
+    // Initial sync
     syncData();
 
-    // Set up a periodic sync every 5 minutes if online
-    const interval = setInterval(() => {
-      if (navigator.onLine) syncData();
-    }, 1000 * 60 * 5);
-
-    return () => clearInterval(interval);
+    // Listen for online status
+    window.addEventListener('online', syncData);
+    return () => window.removeEventListener('online', syncData);
   }, [userId]);
 };
