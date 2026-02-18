@@ -9,7 +9,10 @@ import {
   Bug, 
   RotateCcw,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users,
+  Brain,
+  Zap
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,11 +27,12 @@ interface SidebarItem {
 const sidebarItems: SidebarItem[] = [
   { id: "lessons", label: "Lessons", icon: BookOpen, color: "text-primary" },
   { id: "playground", label: "Code Playground", icon: Code2, color: "text-info" },
+  { id: "collab", label: "Collab Workspace", icon: Users, color: "text-purple-400" },
   { id: "ai-tutor", label: "AI Tutor", icon: Sparkles, color: "text-accent" },
   { id: "roadmap", label: "Course Roadmap", icon: Map, color: "text-success" },
   { id: "projects", label: "Mini Projects", icon: FolderKanban, color: "text-warning" },
-  { id: "cheatsheets", label: "Cheatsheets", icon: FileText, color: "text-primary" },
-  { id: "summaries", label: "Summaries", icon: ListChecks, color: "text-info" },
+  { id: "summaries", label: "Knowledge Summaries", icon: Brain, color: "text-cyan-400" },
+  { id: "skill-tests", label: "Skill Tests", icon: Zap, color: "text-yellow-400" },
   { id: "bug-games", label: "Fun Bug Games", icon: Bug, color: "text-destructive" },
   { id: "mistakes", label: "Mistake Workouts", icon: RotateCcw, color: "text-accent" },
 ];

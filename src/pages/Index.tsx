@@ -20,6 +20,9 @@ import LessonPath from "@/components/LessonPath";
 import CodeEditor from "@/components/CodeEditor";
 import AIAssistant from "@/components/AIAssistant";
 import LearningRoadmap from "@/components/LearningRoadmap";
+import CollabWorkspace from "@/components/CollabWorkspace";
+import LearningSummaries from "@/components/LearningSummaries";
+import SkillTests from "@/components/SkillTests";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -85,6 +88,36 @@ with entry {
               <p className="text-muted-foreground">Your journey to Jaclang mastery</p>
             </div>
             <LearningRoadmap />
+          </div>
+        );
+      case "collab":
+        return (
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Collab Workspace</h2>
+              <p className="text-muted-foreground">Collaborate with fellow coders and help each other grow</p>
+            </div>
+            <CollabWorkspace />
+          </div>
+        );
+      case "summaries":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Knowledge Summaries</h2>
+              <p className="text-muted-foreground">Quick recaps of everything you've mastered</p>
+            </div>
+            <LearningSummaries />
+          </div>
+        );
+      case "skill-tests":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Skill Assessments</h2>
+              <p className="text-muted-foreground">Level-dependent tests to verify your progress</p>
+            </div>
+            <SkillTests />
           </div>
         );
       case "projects":
