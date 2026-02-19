@@ -1,8 +1,20 @@
-import { Search, Bell, User, Sparkles } from "lucide-react";
+import { Search, Bell, User, Sparkles, Code } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const TopNavbar = () => {
+interface TopNavbarProps {
+  selectedLanguage: string;
+  onLanguageChange: (lang: string) => void;
+}
+
+const TopNavbar = ({ selectedLanguage, onLanguageChange }: TopNavbarProps) => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-16 glass-panel border-b border-border/50">
       <div className="h-full px-6 flex items-center justify-between">
@@ -33,8 +45,23 @@ const TopNavbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
+          {/* Language Selector */}
+          <Select value={selectedLanguage} onValueChange={onLanguageChange}>
+            <SelectTrigger className="w-[140px] bg-secondary/50 border-border/50">
+              <Code className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="jaclang">Jaclang</SelectItem>
+              <SelectItem value="python">Python</SelectItem>
+              <SelectItem value="javascript">JavaScript</SelectItem>
+              <SelectItem value="java">Java</SelectItem>
+              <SelectItem value="cpp">C++</SelectItem>
+            </SelectContent>
+          </Select>
+
           {/* AI Tutor Indicator */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel-subtle">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel-subtle">
             <div className="relative">
               <Sparkles className="w-4 h-4 text-primary" />
               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-success animate-pulse" />

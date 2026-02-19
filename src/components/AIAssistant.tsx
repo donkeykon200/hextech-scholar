@@ -19,10 +19,18 @@ interface Message {
   content: string;
 }
 
+interface AIAssistantProps {
+  language?: string;
+}
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/jaclang-tutor`;
 
-const AIAssistant = () => {
-  const [language, setLanguage] = useState("jaclang");
+const AIAssistant = ({ language: initialLanguage = "jaclang" }: AIAssistantProps) => {
+  const [language, setLanguage] = useState(initialLanguage);
+
+  useEffect(() => {
+    setLanguage(initialLanguage);
+  }, [initialLanguage]);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",

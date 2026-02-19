@@ -23,7 +23,7 @@ serve(async (req) => {
     console.log(`Compiling ${language} code...`);
 
     let output = "";
-    let success = true;
+    const success = true;
 
     // Enhanced Mock Logic for multiple languages
     const extractPrint = (code: string, pattern: RegExp) => {

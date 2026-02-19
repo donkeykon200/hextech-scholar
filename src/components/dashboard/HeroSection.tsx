@@ -1,7 +1,13 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  language: string;
+}
+
+const HeroSection = ({ language }: HeroSectionProps) => {
+  const languageName = language.charAt(0).toUpperCase() + language.slice(1);
+
   return (
     <section className="relative py-12 px-8 rounded-3xl glass-panel overflow-hidden volumetric-light">
       {/* Animated Background Elements */}
@@ -35,14 +41,14 @@ const HeroSection = () => {
           <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
             <span className="text-foreground">Master </span>
             <span className="bg-gradient-to-r from-primary via-info to-accent bg-clip-text text-transparent text-glow">
-              Jaclang
+              {languageName}
             </span>
             <br />
             <span className="text-foreground">Your Way</span>
           </h1>
           
           <p className="text-lg text-muted-foreground max-w-lg">
-            Learn Object Spatial Programming through interactive lessons, hands-on projects, 
+            Learn {language === 'jaclang' ? 'Object Spatial Programming' : languageName} through interactive lessons, hands-on projects,
             and AI-guided assistance in your personal coding dojo.
           </p>
 
@@ -68,9 +74,9 @@ const HeroSection = () => {
             <div className="absolute inset-8 rounded-full progress-sphere flex items-center justify-center">
               <div className="text-center">
                 <div className="text-5xl font-bold bg-gradient-to-b from-primary to-info bg-clip-text text-transparent">
-                  J
+                  {languageName.charAt(0)}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1 tracking-widest">JACLANG</div>
+                <div className="text-xs text-muted-foreground mt-1 tracking-widest uppercase">{languageName}</div>
               </div>
             </div>
 

@@ -50,7 +50,7 @@ export const useSync = (userId: string | undefined) => {
                 ...local,
                 lesson_id: remote.lesson_id,
                 user_id: userId,
-                status: remote.status as any,
+                status: remote.status as 'locked' | 'unlocked' | 'in_progress' | 'completed',
                 completed_at: remote.completed_at,
                 score: remote.score,
                 synced: 1

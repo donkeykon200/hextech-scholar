@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BookOpen, 
   Code2, 
@@ -20,36 +20,54 @@ import LessonPath from "@/components/LessonPath";
 import CodeEditor from "@/components/CodeEditor";
 import AIAssistant from "@/components/AIAssistant";
 import LearningRoadmap from "@/components/LearningRoadmap";
+import { useAuth } from "@/hooks/useAuth";
+import { useSync } from "@/hooks/useSync";
+import { type LocalLesson } from "@/db/localDb";
 
 const Index = () => {
-  const [activeSection, setActiveSection] = useState("dashboard");
-  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const { user } = useAuth();
+  useSync(user?.id);
 
-  const sampleCode = `// Define a simple walker in Jaclang
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [selectedLesson, setSelectedLesson] = useState<LocalLesson | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState("jaclang");
+
+  const sampleCode = {
+    jaclang: `// Define a simple walker in Jaclang
 walker greet {
     can visit {
         print("Hello from Jaclang!");
     }
 }
 
-// Create a root node
 node root {}
 
-// Execute the walker
 with entry {
     root spawn greet();
-}`;
-
-  const sampleExercise = {
-    title: "Your First Walker",
-    instructions: "Create a walker that prints 'Hello from Jaclang!' when it visits a node.",
-    expectedOutput: "Hello from Jaclang!",
+}`,
+    python: `print("Hello from Python!")`,
+    javascript: `console.log("Hello from JavaScript!");`,
+    java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello from Java!");\n    }\n}`,
+    cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Hello from C++!" << std::endl;\n    return 0;\n}`
   };
 
-  const handleLessonSelect = (lesson: any) => {
+  const sampleExercise = {
+    title: "Greeting the World",
+    instructions: "Write a program that prints a greeting message.",
+    expectedOutput: "Hello",
+  };
+
+  const handleLessonSelect = (lesson: LocalLesson) => {
     setSelectedLesson(lesson);
     setActiveSection("playground");
   };
+
+  // Reset selected lesson if it doesn't match the selected language
+  useEffect(() => {
+    if (selectedLesson && selectedLesson.language !== selectedLanguage) {
+      setSelectedLesson(null);
+    }
+  }, [selectedLanguage, selectedLesson]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -57,10 +75,12 @@ with entry {
         return (
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Your Learning Path</h2>
+              <h2 className="text-3xl font-bold text-foreground mb-2">
+                {selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)} Learning Path
+              </h2>
               <p className="text-muted-foreground">Complete lessons to unlock new concepts and earn XP</p>
             </div>
-            <LessonPath onLessonSelect={handleLessonSelect} />
+            <LessonPath language={selectedLanguage} onLessonSelect={handleLessonSelect} />
           </div>
         );
       case "playground":
@@ -71,11 +91,13 @@ with entry {
                 {selectedLesson ? selectedLesson.title : "Code Playground"}
               </h2>
               <p className="text-muted-foreground">
-                {selectedLesson ? "Complete this exercise to earn XP" : "Experiment with Jaclang in a safe sandbox environment"}
+                {selectedLesson ? "Complete this exercise to earn XP" : `Experiment with ${selectedLanguage} in a safe sandbox environment`}
               </p>
             </div>
             <CodeEditor
-              initialCode={selectedLesson?.code_template || sampleCode}
+              initialCode={selectedLesson?.code_template || sampleCode[selectedLanguage as keyof typeof sampleCode]}
+              initialLanguage={selectedLanguage}
+              lessonId={selectedLesson?.id}
               exercise={selectedLesson ? {
                 title: selectedLesson.title,
                 instructions: selectedLesson.content,
@@ -88,10 +110,10 @@ with entry {
         return (
           <div className="max-w-3xl mx-auto">
             <div className="mb-6 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">AI Jaclang Tutor</h2>
+              <h2 className="text-3xl font-bold text-foreground mb-2">AI {selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)} Tutor</h2>
               <p className="text-muted-foreground">Get instant help from your personal AI tutor</p>
             </div>
-            <AIAssistant />
+            <AIAssistant language={selectedLanguage} />
           </div>
         );
       case "roadmap":
@@ -99,7 +121,7 @@ with entry {
           <div className="max-w-6xl mx-auto">
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold text-foreground mb-2">Course Roadmap</h2>
-              <p className="text-muted-foreground">Your journey to Jaclang mastery</p>
+              <p className="text-muted-foreground">Your journey to {selectedLanguage} mastery</p>
             </div>
             <LearningRoadmap />
           </div>
@@ -113,9 +135,9 @@ with entry {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { title: "Todo App", desc: "Build a task manager with walkers", difficulty: "Beginner", progress: 0 },
-                { title: "Graph Visualizer", desc: "Create interactive node graphs", difficulty: "Intermediate", progress: 0 },
-                { title: "Chat Bot", desc: "AI-powered conversational agent", difficulty: "Advanced", progress: 0 },
+                { title: "Todo App", desc: "Build a task manager", difficulty: "Beginner", progress: 0 },
+                { title: "Data Processor", desc: "Analyze data sets", difficulty: "Intermediate", progress: 0 },
+                { title: "Network Chat", desc: "Communicate over sockets", difficulty: "Advanced", progress: 0 },
               ].map((project, i) => (
                 <DashboardCard
                   key={i}
@@ -170,14 +192,14 @@ with entry {
           </div>
         );
       default:
-        return <DashboardContent onNavigate={setActiveSection} />;
+        return <DashboardContent onNavigate={setActiveSection} language={selectedLanguage} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <ParticleBackground />
-      <TopNavbar />
+      <TopNavbar selectedLanguage={selectedLanguage} onLanguageChange={setSelectedLanguage} />
       <Sidebar3D activeItem={activeSection === "dashboard" ? "" : activeSection} onItemClick={setActiveSection} />
       
       <main className="pl-64 pt-16 min-h-screen transition-all duration-300">
@@ -198,17 +220,17 @@ with entry {
 };
 
 // Dashboard Content Component
-const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => void }) => {
+const DashboardContent = ({ onNavigate, language }: { onNavigate: (section: string) => void, language: string }) => {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <HeroSection />
+      <HeroSection language={language} />
 
       {/* Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <DashboardCard
           title="Continue Lesson"
-          description="Pick up where you left off"
+          description={`Resume your ${language} journey`}
           icon={BookOpen}
           color="primary"
           progress={65}
@@ -268,7 +290,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
           {/* Recent Lessons */}
           <div className="glass-panel rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Recent Lessons</h3>
+              <h3 className="text-lg font-semibold text-foreground">Recent {language.charAt(0).toUpperCase() + language.slice(1)} Lessons</h3>
               <button 
                 onClick={() => onNavigate("lessons")}
                 className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
@@ -279,9 +301,9 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
             
             <div className="space-y-3">
               {[
-                { title: "Introduction to Walkers", progress: 100, time: "15 min" },
-                { title: "Node Data Types", progress: 75, time: "20 min" },
-                { title: "Edge Connections", progress: 30, time: "25 min" },
+                { title: `Introduction to ${language}`, progress: 100, time: "15 min" },
+                { title: `${language} Data Types`, progress: 75, time: "20 min" },
+                { title: "Advanced Concepts", progress: 30, time: "25 min" },
               ].map((lesson, i) => (
                 <div 
                   key={i}
@@ -312,8 +334,8 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
           <div className="glass-panel-subtle rounded-2xl p-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Tip</h3>
             <p className="text-foreground">
-              💡 <span className="text-primary font-medium">Walkers</span> are the primary way to traverse graphs in Jaclang. 
-              They can carry data and execute abilities when visiting nodes.
+              💡 <span className="text-primary font-medium">{language.charAt(0).toUpperCase() + language.slice(1)}</span> is a powerful language.
+              Keep practicing to master its nuances!
             </p>
           </div>
         </div>

@@ -12,10 +12,14 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { db } from "@/db/localDb";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CodeEditorProps {
   initialCode?: string;
   initialLanguage?: string;
+  lessonId?: string;
   exercise?: {
     title: string;
     instructions: string;
@@ -23,9 +27,16 @@ interface CodeEditorProps {
   };
 }
 
-const CodeEditor = ({ initialCode = "", initialLanguage = "jaclang", exercise }: CodeEditorProps) => {
+const CodeEditor = ({ initialCode = "", initialLanguage = "jaclang", lessonId, exercise }: CodeEditorProps) => {
+  const { user } = useAuth();
   const [code, setCode] = useState(initialCode);
   const [language, setLanguage] = useState(initialLanguage);
+
+  useEffect(() => {
+    setLanguage(initialLanguage);
+    setCode(initialCode);
+  }, [initialLanguage, initialCode]);
+
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -46,10 +57,21 @@ const CodeEditor = ({ initialCode = "", initialLanguage = "jaclang", exercise }:
       if (exercise && data.output.includes(exercise.expectedOutput)) {
         setIsCorrect(true);
         toast.success("Correct! Well done.");
+
+        if (lessonId && user) {
+          await db.lessonProgress.put({
+            lesson_id: lessonId,
+            user_id: user.id,
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            synced: 0
+          });
+        }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error running code:", error);
-      setOutput(`Error: ${error.message || "Failed to execute code"}`);
+      const errorMessage = error instanceof Error ? error.message : "Failed to execute code";
+      setOutput(`Error: ${errorMessage}`);
       toast.error("Execution failed");
     } finally {
       setIsRunning(false);

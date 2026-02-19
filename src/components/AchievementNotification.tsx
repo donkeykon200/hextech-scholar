@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Trophy, Sparkles, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,11 @@ interface AchievementNotificationProps {
 const AchievementNotification = ({ achievement, onClose }: AchievementNotificationProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(onClose, 300);
+  }, [onClose]);
+
   useEffect(() => {
     // Trigger entrance animation
     setTimeout(() => setIsVisible(true), 100);
@@ -22,12 +27,7 @@ const AchievementNotification = ({ achievement, onClose }: AchievementNotificati
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, []);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300);
-  };
+  }, [handleClose]);
 
   return (
     <div className={`
