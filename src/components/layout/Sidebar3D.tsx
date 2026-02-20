@@ -44,7 +44,7 @@ const Sidebar3D = ({ activeItem, onItemClick }: Sidebar3DProps) => {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-16 bottom-0 z-40 glass-panel border-r border-border/30 transition-all duration-300",
+        "fixed left-0 top-16 bottom-0 z-40 glass-panel border-r border-border/30 transition-all duration-300 flex flex-col",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -61,7 +61,7 @@ const Sidebar3D = ({ activeItem, onItemClick }: Sidebar3DProps) => {
       </button>
 
       {/* Navigation Items */}
-      <nav className="p-3 space-y-1 mt-4">
+      <nav className="p-3 space-y-1 mt-4 flex-1 overflow-y-auto overflow-x-hidden">
         {sidebarItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeItem === item.id;
@@ -112,7 +112,7 @@ const Sidebar3D = ({ activeItem, onItemClick }: Sidebar3DProps) => {
 
       {/* Bottom Section */}
       {!isCollapsed && (
-        <div className="absolute bottom-4 left-3 right-3">
+        <div className="p-3 mt-auto border-t border-border/20">
           <div className="glass-panel-subtle rounded-xl p-3">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
