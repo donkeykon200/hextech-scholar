@@ -1,5 +1,7 @@
 import { Trophy, Star, Flame, Zap, Target, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/localDb";
 
 interface Achievement {
   id: string;
@@ -20,12 +22,31 @@ const achievements: Achievement[] = [
 ];
 
 const AchievementTotem = () => {
+  const localAchievements = useLiveQuery(() => db.achievements.toArray());
+
+  // Map icons to IDs
+  const iconMap: Record<string, any> = {
+    xp: Zap,
+    streak: Flame,
+    lessons: Target,
+    stars: Star,
+    badges: Award,
+    trophies: Trophy
+  };
+
+  const displayAchievements = (localAchievements || []).length > 0
+    ? localAchievements!.map(a => ({
+        ...a,
+        icon: iconMap[a.id] || Award
+      }))
+    : achievements;
+
   return (
     <div className="glass-panel rounded-2xl p-4">
       <h3 className="text-sm font-medium text-foreground mb-4 px-2">Achievements</h3>
       
       <div className="space-y-2">
-        {achievements.map((achievement, index) => {
+        {displayAchievements.map((achievement, index) => {
           const Icon = achievement.icon;
           
           return (

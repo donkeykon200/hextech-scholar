@@ -20,6 +20,8 @@ import LessonPath from "@/components/LessonPath";
 import CodeEditor from "@/components/CodeEditor";
 import AIAssistant from "@/components/AIAssistant";
 import LearningRoadmap from "@/components/LearningRoadmap";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/localDb";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -182,6 +184,9 @@ with entry {
 
 // Dashboard Content Component
 const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => void }) => {
+  const userProgress = useLiveQuery(() => db.userProgress.toCollection().last());
+  const recentLessons = useLiveQuery(() => db.lessons.limit(3).toArray());
+
   return (
     <div className="space-y-8">
       {/* Hero Section */}
@@ -194,7 +199,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
           description="Pick up where you left off"
           icon={BookOpen}
           color="primary"
-          progress={65}
+          progress={userProgress?.overallProgress || 0}
           action="Resume"
           onClick={() => onNavigate("lessons")}
         />
@@ -237,9 +242,9 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
         {/* Left Column - Progress & Stats */}
         <div className="space-y-6">
           <ProgressSphere 
-            percentage={42} 
+            percentage={userProgress?.overallProgress || 0}
             label="Overall Progress" 
-            sublabel="42% Complete" 
+            sublabel={`${userProgress?.overallProgress || 0}% Complete`}
           />
           <AchievementTotem />
         </div>
@@ -261,11 +266,7 @@ const DashboardContent = ({ onNavigate }: { onNavigate: (section: string) => voi
             </div>
             
             <div className="space-y-3">
-              {[
-                { title: "Introduction to Walkers", progress: 100, time: "15 min" },
-                { title: "Node Data Types", progress: 75, time: "20 min" },
-                { title: "Edge Connections", progress: 30, time: "25 min" },
-              ].map((lesson, i) => (
+              {(recentLessons || []).map((lesson, i) => (
                 <div 
                   key={i}
                   onClick={() => onNavigate("lessons")}
