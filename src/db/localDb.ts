@@ -30,17 +30,43 @@ export interface LocalLesson {
   language: string;
 }
 
+export interface LocalBugChallenge {
+  id: string;
+  title: string;
+  description: string;
+  broken_code: string;
+  solution_code: string;
+  language: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  xp_reward: number;
+}
+
+export interface LocalUserMistake {
+  id?: string;
+  user_id: string;
+  bug_challenge_id?: string;
+  lesson_id?: string;
+  wrong_code: string;
+  attempted_at: string;
+  resolved: boolean;
+  synced: number;
+}
+
 export class JaclangLocalDb extends Dexie {
   lessonProgress!: Table<LocalLessonProgress>;
   userStats!: Table<LocalUserStats>;
   lessons!: Table<LocalLesson>;
+  bugChallenges!: Table<LocalBugChallenge>;
+  userMistakes!: Table<LocalUserMistake>;
 
   constructor() {
     super('JaclangAcademyDb');
-    this.version(2).stores({
+    this.version(3).stores({
       lessonProgress: '++id, lesson_id, user_id, status, synced',
       userStats: 'user_id, synced',
-      lessons: 'id, language, order'
+      lessons: 'id, language, order',
+      bugChallenges: 'id, language, difficulty',
+      userMistakes: '++id, user_id, bug_challenge_id, lesson_id, resolved, synced'
     });
   }
 }

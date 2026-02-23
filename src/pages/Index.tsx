@@ -20,6 +20,8 @@ import LessonPath from "@/components/LessonPath";
 import CodeEditor from "@/components/CodeEditor";
 import AIAssistant from "@/components/AIAssistant";
 import LearningRoadmap from "@/components/LearningRoadmap";
+import BugHuntGame from "@/components/BugHuntGame";
+import MistakeWorkout from "@/components/MistakeWorkout";
 import { useAuth } from "@/hooks/useAuth";
 import { useSync } from "@/hooks/useSync";
 import { type LocalLesson } from "@/db/localDb";
@@ -154,27 +156,12 @@ with entry {
         );
       case "bug-games":
         return (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold text-foreground mb-2">Bug Hunt Games</h2>
-              <p className="text-muted-foreground">Find and fix bugs in fun, gamified challenges</p>
+              <p className="text-muted-foreground">Find and fix bugs in fun, gamified challenges for {selectedLanguage}</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { title: "Syntax Safari", desc: "Hunt syntax errors in the wild", level: 1 },
-                { title: "Logic Labyrinth", desc: "Navigate through logical bugs", level: 2 },
-                { title: "Memory Maze", desc: "Fix memory-related issues", level: 3 },
-              ].map((game, i) => (
-                <DashboardCard
-                  key={i}
-                  title={game.title}
-                  description={game.desc}
-                  icon={Bug}
-                  color="destructive"
-                  action={`Level ${game.level}`}
-                />
-              ))}
-            </div>
+            <BugHuntGame language={selectedLanguage} />
           </div>
         );
       case "mistakes":
@@ -184,11 +171,7 @@ with entry {
               <h2 className="text-3xl font-bold text-foreground mb-2">Mistake Workouts</h2>
               <p className="text-muted-foreground">Review and practice areas where you've struggled</p>
             </div>
-            <div className="glass-panel rounded-2xl p-6 text-center">
-              <RotateCcw className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No mistakes yet!</h3>
-              <p className="text-muted-foreground">Complete some lessons to see your areas for improvement.</p>
-            </div>
+            <MistakeWorkout />
           </div>
         );
       default:

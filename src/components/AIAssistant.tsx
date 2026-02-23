@@ -91,33 +91,39 @@ const AIAssistant = ({ language: initialLanguage = "jaclang" }: AIAssistantProps
       while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
         let line = textBuffer.slice(0, newlineIndex);
         textBuffer = textBuffer.slice(newlineIndex + 1);
+        processLine(line);
+      }
+    }
 
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (line.startsWith(":") || line.trim() === "") continue;
-        if (!line.startsWith("data: ")) continue;
+    // Process remaining buffer
+    if (textBuffer.trim()) {
+      processLine(textBuffer);
+    }
 
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") break;
+    function processLine(line: string) {
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith(":") || line.trim() === "") return;
+      if (!line.startsWith("data: ")) return;
 
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-          if (content) {
-            assistantContent += content;
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1] = {
-                role: "assistant",
-                content: assistantContent,
-              };
-              return newMessages;
-            });
-          }
-        } catch {
-          // Incomplete JSON, put back and wait
-          textBuffer = line + "\n" + textBuffer;
-          break;
+      const jsonStr = line.slice(6).trim();
+      if (jsonStr === "[DONE]") return;
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) {
+          assistantContent += content;
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            newMessages[newMessages.length - 1] = {
+              role: "assistant",
+              content: assistantContent,
+            };
+            return newMessages;
+          });
         }
+      } catch (e) {
+        console.error("Error parsing AI response chunk:", e);
       }
     }
   };
